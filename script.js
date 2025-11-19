@@ -8,29 +8,26 @@ const userCard = document.getElementById('userCard');
 const backToSplash = document.getElementById('backToSplash');
 const loginForm = document.getElementById('loginForm');
 const logoutBtn = document.getElementById('logoutBtn');
-const alertContainer = document.getElementById('alert');
+const alertToast = document.getElementById('alert');
 const currentDateElement = document.getElementById('currentDate');
-const sideNav = document.getElementById('sideNav');
-const closeNav = document.getElementById('closeNav');
+const sidebar = document.getElementById('sidebar');
+const closeSidebar = document.getElementById('closeSidebar');
 const menuBtn = document.getElementById('menuBtn');
-const adminMenuBtn = document.getElementById('adminMenuBtn');
 const overlay = document.getElementById('overlay');
-const navLinks = document.querySelectorAll('.nav-links a');
+const navLinks = document.querySelectorAll('.nav-link');
 const bookingForm = document.getElementById('bookingForm');
 const bookingsTableBody = document.getElementById('bookingsTableBody');
-const bookingModal = document.getElementById('bookingModal');
-const closeModal = document.getElementById('closeModal');
-const cancelBtn = document.getElementById('cancelBtn');
+const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
 const modalBookingForm = document.getElementById('modalBookingForm');
 const modalTitle = document.getElementById('modalTitle');
 const addBookingBtn = document.getElementById('addBookingBtn');
 const exportBtn = document.getElementById('exportBtn');
+const saveBookingBtn = document.getElementById('saveBookingBtn');
 const occupiedRoomsElement = document.getElementById('occupiedRooms');
 const totalGuestsElement = document.getElementById('totalGuests');
 const checkinsTodayElement = document.getElementById('checkinsToday');
 const pendingRequestsElement = document.getElementById('pendingRequests');
 const userBookingsContainer = document.getElementById('userBookingsContainer');
-const heroBtn = document.querySelector('.hero-btn');
 
 // Default admin credentials
 const adminCredentials = {
@@ -41,20 +38,21 @@ const adminCredentials = {
 // Initialize booking counter
 let bookingCounter = JSON.parse(localStorage.getItem('kudahHotelBookingCounter')) || 1000;
 
-// Sample data for bookings (in a real app, this would come from a database)
+// Sample data for bookings
 let bookings = JSON.parse(localStorage.getItem('kudahHotelBookings')) || [];
 
 // Initialize charts
 let bookingChart, roomChart;
 
 // Show alert function
-function showAlert(message, type) {
-    alertContainer.textContent = message;
-    alertContainer.className = `alert ${type} show`;
+function showAlert(message, type = 'success') {
+    const toast = new bootstrap.Toast(alertToast);
+    const toastBody = alertToast.querySelector('.toast-body');
     
-    setTimeout(() => {
-        alertContainer.classList.remove('show');
-    }, 4000);
+    alertToast.className = `toast align-items-center text-white border-0 ${type === 'success' ? 'success' : type === 'error' ? 'error' : 'warning'}`;
+    toastBody.textContent = message;
+    
+    toast.show();
 }
 
 // Update current date
@@ -64,24 +62,26 @@ function updateDate() {
     currentDateElement.textContent = now.toLocaleDateString('en-US', options);
 }
 
-// Toggle side navigation
-function toggleNav() {
-    sideNav.classList.toggle('active');
-    overlay.classList.toggle('active');
+// Toggle sidebar
+function toggleSidebar() {
+    sidebar.classList.toggle('show');
+    overlay.classList.toggle('show');
 }
 
-// Close side navigation
-function closeSideNav() {
-    sideNav.classList.remove('active');
-    overlay.classList.remove('active');
+// Close sidebar
+function closeSidebarFunc() {
+    sidebar.classList.remove('show');
+    overlay.classList.remove('show');
 }
 
 // Navigate to section
 function navigateToSection(sectionId) {
-    document.querySelectorAll('.section').forEach(section => {
+    // Hide all sections
+    document.querySelectorAll('section').forEach(section => {
         section.style.display = 'none';
     });
     
+    // Show target section
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
         targetSection.style.display = 'block';
@@ -99,7 +99,7 @@ function navigateToSection(sectionId) {
             renderUserBookings();
         }
         
-        closeSideNav();
+        closeSidebarFunc();
     }
 }
 
@@ -112,7 +112,7 @@ function generateBookingId() {
 
 // Calculate days between dates
 function calculateDaysBetweenDates(checkIn, checkOut) {
-    const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+    const oneDay = 24 * 60 * 60 * 1000;
     const firstDate = new Date(checkIn);
     const secondDate = new Date(checkOut);
     
@@ -162,16 +162,14 @@ function getUserBookings(email) {
 function renderUserBookings() {
     userBookingsContainer.innerHTML = '';
     
-    // In a real app, you would get the user's email from authentication
-    // For demo purposes, we'll use a placeholder
     const userEmail = document.getElementById('email') ? document.getElementById('email').value : '';
     
     if (!userEmail) {
         userBookingsContainer.innerHTML = `
-            <div class="no-bookings">
-                <i class="fas fa-receipt"></i>
-                <h3>No Bookings Found</h3>
-                <p>Please make a booking first or check your email address.</p>
+            <div class="text-center py-5">
+                <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Bookings Found</h4>
+                <p class="text-muted">Please make a booking first or check your email address.</p>
             </div>
         `;
         return;
@@ -181,10 +179,10 @@ function renderUserBookings() {
     
     if (userBookings.length === 0) {
         userBookingsContainer.innerHTML = `
-            <div class="no-bookings">
-                <i class="fas fa-receipt"></i>
-                <h3>No Bookings Found</h3>
-                <p>You haven't made any bookings yet. <a href="#" data-page="book" style="color: var(--gold);">Book now</a> to get started!</p>
+            <div class="text-center py-5">
+                <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Bookings Found</h4>
+                <p class="text-muted">You haven't made any bookings yet. <a href="#" data-page="book" class="text-gold">Book now</a> to get started!</p>
             </div>
         `;
         return;
@@ -193,10 +191,10 @@ function renderUserBookings() {
     userBookings.forEach(booking => {
         const days = calculateDaysBetweenDates(booking.checkIn, booking.checkOut);
         const receipt = document.createElement('div');
-        receipt.className = 'booking-receipt';
+        receipt.className = 'booking-receipt mb-4';
         receipt.innerHTML = `
             <div class="receipt-header">
-                <h3>Booking Receipt</h3>
+                <h4 class="mb-0">Booking Receipt</h4>
                 <div class="booking-id">${booking.id}</div>
             </div>
             <div class="receipt-details">
@@ -233,11 +231,13 @@ function renderUserBookings() {
                     <span>${booking.guests}</span>
                 </div>
             </div>
-            <div class="receipt-item form-group-full">
+            <div class="receipt-item">
                 <label>Special Requests</label>
                 <span>${booking.specialRequests || 'None'}</span>
             </div>
-            <div class="receipt-status status-${booking.status}">${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</div>
+            <div class="receipt-status status-${booking.status}">
+                ${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+            </div>
         `;
         userBookingsContainer.appendChild(receipt);
     });
@@ -248,7 +248,14 @@ function renderBookingsTable() {
     bookingsTableBody.innerHTML = '';
     
     if (bookings.length === 0) {
-        bookingsTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No bookings found</td></tr>';
+        bookingsTableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-4 text-muted">
+                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                    <p class="mb-0">No bookings found</p>
+                </td>
+            </tr>
+        `;
         return;
     }
     
@@ -260,10 +267,19 @@ function renderBookingsTable() {
             <td>${booking.roomType.charAt(0).toUpperCase() + booking.roomType.slice(1)}</td>
             <td>${new Date(booking.checkIn).toLocaleDateString()}</td>
             <td>${new Date(booking.checkOut).toLocaleDateString()}</td>
-            <td><span class="status ${booking.status}">${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</span></td>
-            <td class="action-buttons">
-                <button class="action-btn edit-btn" data-id="${booking.id}"><i class="fas fa-edit"></i></button>
-                <button class="action-btn delete-btn" data-id="${booking.id}"><i class="fas fa-trash"></i></button>
+            <td>${booking.guests}</td>
+            <td>
+                <span class="badge bg-${booking.status === 'confirmed' ? 'success' : booking.status === 'pending' ? 'warning' : 'danger'}">
+                    ${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary edit-btn me-1" data-id="${booking.id}">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${booking.id}">
+                    <i class="fas fa-trash"></i>
+                </button>
             </td>
         `;
         bookingsTableBody.appendChild(row);
@@ -296,7 +312,7 @@ function openEditModal(id) {
         document.getElementById('modalSpecialRequests').value = booking.specialRequests || '';
         
         modalTitle.textContent = 'Edit Booking';
-        bookingModal.classList.add('active');
+        bookingModal.show();
     }
 }
 
@@ -306,7 +322,7 @@ function deleteBookingHandler(id) {
         if (deleteBooking(id)) {
             renderBookingsTable();
             updateDashboardStats();
-            showAlert('Booking deleted successfully', 'success');
+            showAlert('Booking deleted successfully');
         } else {
             showAlert('Failed to delete booking', 'error');
         }
@@ -315,16 +331,24 @@ function deleteBookingHandler(id) {
 
 // Update dashboard statistics
 function updateDashboardStats() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toDateString();
     
-    // Calculate stats
-    const occupiedRooms = bookings.filter(b => b.status === 'confirmed').length;
-    const totalGuests = bookings.filter(b => b.status === 'confirmed')
-        .reduce((sum, booking) => sum + parseInt(booking.guests), 0);
-    const checkinsToday = bookings.filter(b => b.checkIn === today && b.status === 'confirmed').length;
-    const pendingRequests = bookings.filter(b => b.status === 'pending').length;
+    const occupiedRooms = bookings.filter(booking => 
+        booking.status === 'confirmed' || booking.status === 'pending'
+    ).length;
     
-    // Update UI
+    const totalGuests = bookings.reduce((total, booking) => 
+        total + parseInt(booking.guests), 0
+    );
+    
+    const checkinsToday = bookings.filter(booking => 
+        new Date(booking.checkIn).toDateString() === today
+    ).length;
+    
+    const pendingRequests = bookings.filter(booking => 
+        booking.status === 'pending'
+    ).length;
+    
     occupiedRoomsElement.textContent = occupiedRooms;
     totalGuestsElement.textContent = totalGuests;
     checkinsTodayElement.textContent = checkinsToday;
@@ -332,32 +356,32 @@ function updateDashboardStats() {
 }
 
 // Initialize charts
-function initCharts() {
+function initializeCharts() {
+    // Booking Trends Chart
     const bookingCtx = document.getElementById('bookingChart').getContext('2d');
     const roomCtx = document.getElementById('roomChart').getContext('2d');
     
-    // Booking trends chart
-    const last7Days = [...Array(7)].map((_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        return d.toISOString().split('T')[0];
+    // Sample data for booking trends (last 7 days)
+    const last7Days = Array.from({length: 7}, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        return date.toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
     }).reverse();
     
-    const bookingsByDay = last7Days.map(day => {
-        return bookings.filter(b => b.checkIn === day).length;
-    });
+    const bookingData = Array.from({length: 7}, () => Math.floor(Math.random() * 20) + 5);
     
     bookingChart = new Chart(bookingCtx, {
         type: 'line',
         data: {
-            labels: last7Days.map(d => new Date(d).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})),
+            labels: last7Days,
             datasets: [{
                 label: 'Bookings',
-                data: bookingsByDay,
+                data: bookingData,
                 borderColor: '#3182ce',
                 backgroundColor: 'rgba(49, 130, 206, 0.1)',
-                tension: 0.4,
-                fill: true
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
             }]
         },
         options: {
@@ -370,32 +394,41 @@ function initCharts() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
                     }
                 }
             }
         }
     });
     
-    // Room type distribution chart
-    const roomTypes = ['standard', 'deluxe', 'suite', 'executive'];
+    // Room Distribution Chart
+    const roomTypes = ['Standard', 'Deluxe', 'Suite', 'Executive'];
     const roomCounts = roomTypes.map(type => 
-        bookings.filter(b => b.roomType === type).length
+        bookings.filter(booking => 
+            booking.roomType === type.toLowerCase()
+        ).length
     );
     
     roomChart = new Chart(roomCtx, {
         type: 'doughnut',
         data: {
-            labels: ['Standard', 'Deluxe', 'Suite', 'Executive'],
+            labels: roomTypes,
             datasets: [{
                 data: roomCounts,
                 backgroundColor: [
                     '#3182ce',
                     '#38a169',
                     '#d69e2e',
-                    '#e53e3e'
-                ]
+                    '#d4af37'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
             }]
         },
         options: {
@@ -409,48 +442,23 @@ function initCharts() {
     });
 }
 
-// Update charts
-function updateCharts() {
-    // Update booking trends chart
-    const last7Days = [...Array(7)].map((_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        return d.toISOString().split('T')[0];
-    }).reverse();
-    
-    const bookingsByDay = last7Days.map(day => {
-        return bookings.filter(b => b.checkIn === day).length;
-    });
-    
-    bookingChart.data.datasets[0].data = bookingsByDay;
-    bookingChart.update();
-    
-    // Update room type distribution chart
-    const roomTypes = ['standard', 'deluxe', 'suite', 'executive'];
-    const roomCounts = roomTypes.map(type => 
-        bookings.filter(b => b.roomType === type).length
-    );
-    
-    roomChart.data.datasets[0].data = roomCounts;
-    roomChart.update();
-}
-
-// Export to CSV
+// Export bookings to CSV
 function exportToCSV() {
     if (bookings.length === 0) {
-        showAlert('No data to export', 'warning');
+        showAlert('No bookings to export', 'warning');
         return;
     }
     
-    const headers = ['Booking ID', 'Guest Name', 'Email', 'Phone', 'Room Type', 'Check-in', 'Check-out', 'Guests', 'Status', 'Special Requests'];
+    const headers = ['ID', 'First Name', 'Last Name', 'Email', 'Phone', 'Room Type', 'Check-in', 'Check-out', 'Guests', 'Status', 'Special Requests'];
     const csvData = bookings.map(booking => [
         booking.id,
-        `${booking.firstName} ${booking.lastName}`,
+        booking.firstName,
+        booking.lastName,
         booking.email,
         booking.phone,
         booking.roomType,
-        booking.checkIn,
-        booking.checkOut,
+        new Date(booking.checkIn).toLocaleDateString(),
+        new Date(booking.checkOut).toLocaleDateString(),
         booking.guests,
         booking.status,
         booking.specialRequests || ''
@@ -470,189 +478,198 @@ function exportToCSV() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    showAlert('Data exported successfully', 'success');
+    showAlert('Bookings exported successfully');
 }
 
-// Set minimum dates for date inputs
-function setMinDates() {
+// Initialize the application
+function init() {
+    // Set minimum dates for booking forms
     const today = new Date().toISOString().split('T')[0];
-    const checkInInput = document.getElementById('checkIn');
-    const checkOutInput = document.getElementById('checkOut');
-    const modalCheckInInput = document.getElementById('modalCheckIn');
-    const modalCheckOutInput = document.getElementById('modalCheckOut');
+    document.getElementById('checkIn')?.setAttribute('min', today);
+    document.getElementById('checkOut')?.setAttribute('min', today);
+    document.getElementById('modalCheckIn')?.setAttribute('min', today);
+    document.getElementById('modalCheckOut')?.setAttribute('min', today);
     
-    if (checkInInput) checkInInput.min = today;
-    if (checkOutInput) checkOutInput.min = today;
-    if (modalCheckInInput) modalCheckInInput.min = today;
-    if (modalCheckOutInput) modalCheckOutInput.min = today;
+    // Update date
+    updateDate();
+    
+    // Render initial data
+    renderBookingsTable();
+    updateDashboardStats();
+    initializeCharts();
 }
 
 // Event Listeners
-adminCard.addEventListener('click', () => {
-    splashScreen.classList.add('hidden');
-    setTimeout(() => {
-        loginPage.classList.add('active');
-    }, 800);
-});
-
-userCard.addEventListener('click', () => {
-    splashScreen.classList.add('hidden');
-    setTimeout(() => {
-        userHome.classList.add('active');
-        showAlert('Welcome to Kudah Hotel!', 'success');
-        setMinDates();
-    }, 800);
-});
-
-backToSplash.addEventListener('click', (e) => {
-    e.preventDefault();
-    loginPage.classList.remove('active');
-    setTimeout(() => {
-        splashScreen.classList.remove('hidden');
-    }, 500);
-});
-
-loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize app
+    init();
     
-    if (username === adminCredentials.username && password === adminCredentials.password) {
+    // User type selection
+    adminCard.addEventListener('click', function() {
+        splashScreen.classList.add('hidden');
+        setTimeout(() => {
+            splashScreen.style.display = 'none';
+            loginPage.classList.add('active');
+        }, 800);
+    });
+    
+    userCard.addEventListener('click', function() {
+        splashScreen.classList.add('hidden');
+        setTimeout(() => {
+            splashScreen.style.display = 'none';
+            userHome.style.display = 'block';
+        }, 800);
+    });
+    
+    // Back to splash from login
+    backToSplash.addEventListener('click', function(e) {
+        e.preventDefault();
         loginPage.classList.remove('active');
         setTimeout(() => {
-            adminDashboard.classList.add('active');
-            showAlert('Login successful! Welcome to the dashboard.', 'success');
-            updateDate();
-            renderBookingsTable();
-            updateDashboardStats();
-            initCharts();
-            setMinDates();
-        }, 500);
-    } else {
-        showAlert('Invalid credentials. Please try again.', 'error');
-    }
-});
-
-logoutBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    adminDashboard.classList.remove('active');
-    setTimeout(() => {
-        splashScreen.classList.remove('hidden');
-        showAlert('You have been logged out successfully.', 'success');
-    }, 500);
-});
-
-menuBtn.addEventListener('click', toggleNav);
-adminMenuBtn.addEventListener('click', toggleNav);
-closeNav.addEventListener('click', closeSideNav);
-overlay.addEventListener('click', closeSideNav);
-
-navLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const page = link.getAttribute('data-page');
-        navigateToSection(`${page}Section`);
+            splashScreen.style.display = 'flex';
+            splashScreen.classList.remove('hidden');
+        }, 300);
     });
-});
-
-// Fix for hero button
-if (heroBtn) {
-    heroBtn.addEventListener('click', (e) => {
+    
+    // Admin login
+    loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        navigateToSection('bookSection');
-    });
-}
-
-bookingForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const formData = {
-        firstName: document.getElementById('firstName').value,
-        lastName: document.getElementById('lastName').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        checkIn: document.getElementById('checkIn').value,
-        checkOut: document.getElementById('checkOut').value,
-        roomType: document.getElementById('roomType').value,
-        guests: document.getElementById('guests').value,
-        specialRequests: document.getElementById('specialRequests').value,
-        status: 'pending'
-    };
-    
-    // Calculate days
-    const days = calculateDaysBetweenDates(formData.checkIn, formData.checkOut);
-    
-    const newBooking = addBooking(formData);
-    bookingForm.reset();
-    setMinDates();
-    
-    showAlert(`Booking submitted successfully, ${formData.firstName}! Your booking ID is ${newBooking.id}. You will be staying for ${days} ${days === 1 ? 'day' : 'days'}.`, 'success');
-    
-    // If admin is logged in, update the dashboard
-    if (adminDashboard.classList.contains('active')) {
-        renderBookingsTable();
-        updateDashboardStats();
-        updateCharts();
-    }
-});
-
-addBookingBtn.addEventListener('click', () => {
-    modalBookingForm.reset();
-    document.getElementById('bookingId').value = '';
-    modalTitle.textContent = 'Add New Booking';
-    bookingModal.classList.add('active');
-    setMinDates();
-});
-
-closeModal.addEventListener('click', () => {
-    bookingModal.classList.remove('active');
-});
-
-cancelBtn.addEventListener('click', () => {
-    bookingModal.classList.remove('active');
-});
-
-modalBookingForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const formData = {
-        firstName: document.getElementById('modalFirstName').value,
-        lastName: document.getElementById('modalLastName').value,
-        email: document.getElementById('modalEmail').value,
-        phone: document.getElementById('modalPhone').value,
-        checkIn: document.getElementById('modalCheckIn').value,
-        checkOut: document.getElementById('modalCheckOut').value,
-        roomType: document.getElementById('modalRoomType').value,
-        guests: document.getElementById('modalGuests').value,
-        status: document.getElementById('modalStatus').value,
-        specialRequests: document.getElementById('modalSpecialRequests').value
-    };
-    
-    const bookingId = document.getElementById('bookingId').value;
-    
-    if (bookingId) {
-        // Update existing booking
-        if (updateBooking(bookingId, formData)) {
-            renderBookingsTable();
-            updateDashboardStats();
-            updateCharts();
-            showAlert('Booking updated successfully', 'success');
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        if (username === adminCredentials.username && password === adminCredentials.password) {
+            loginPage.classList.remove('active');
+            adminDashboard.style.display = 'block';
+            showAlert('Welcome to Admin Dashboard!');
         } else {
-            showAlert('Failed to update booking', 'error');
+            showAlert('Invalid credentials. Please try again.', 'error');
         }
-    } else {
-        // Add new booking
-        const newBooking = addBooking(formData);
-        renderBookingsTable();
-        updateDashboardStats();
-        updateCharts();
-        showAlert(`Booking added successfully! Booking ID: ${newBooking.id}`, 'success');
-    }
+    });
     
-    bookingModal.classList.remove('active');
+    // Logout functionality
+    logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        if (adminDashboard.style.display === 'block') {
+            adminDashboard.style.display = 'none';
+        } else {
+            userHome.style.display = 'none';
+        }
+        
+        // Clear any form data
+        document.getElementById('bookingForm')?.reset();
+        document.getElementById('loginForm')?.reset();
+        
+        // Show splash screen
+        splashScreen.style.display = 'flex';
+        setTimeout(() => {
+            splashScreen.classList.remove('hidden');
+        }, 50);
+    });
+    
+    // Sidebar functionality
+    menuBtn.addEventListener('click', toggleSidebar);
+    closeSidebar.addEventListener('click', closeSidebarFunc);
+    overlay.addEventListener('click', closeSidebarFunc);
+    
+    // Navigation links
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            navigateToSection(page + 'Section');
+        });
+    });
+    
+    // User booking form
+    bookingForm?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const bookingData = {
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            checkIn: document.getElementById('checkIn').value,
+            checkOut: document.getElementById('checkOut').value,
+            roomType: document.getElementById('roomType').value,
+            guests: document.getElementById('guests').value,
+            specialRequests: document.getElementById('specialRequests').value,
+            status: 'pending'
+        };
+        
+        const newBooking = addBooking(bookingData);
+        
+        // Reset form
+        this.reset();
+        
+        // Show success message
+        showAlert(`Booking created successfully! Your booking ID is ${newBooking.id}`);
+        
+        // Navigate to my bookings
+        setTimeout(() => {
+            navigateToSection('myBookingsSection');
+        }, 2000);
+    });
+    
+    // Admin add booking button
+    addBookingBtn?.addEventListener('click', function() {
+        document.getElementById('bookingId').value = '';
+        modalBookingForm.reset();
+        modalTitle.textContent = 'Add New Booking';
+        bookingModal.show();
+    });
+    
+    // Save booking in modal (for admin)
+    saveBookingBtn?.addEventListener('click', function() {
+        const bookingId = document.getElementById('bookingId').value;
+        const bookingData = {
+            firstName: document.getElementById('modalFirstName').value,
+            lastName: document.getElementById('modalLastName').value,
+            email: document.getElementById('modalEmail').value,
+            phone: document.getElementById('modalPhone').value,
+            checkIn: document.getElementById('modalCheckIn').value,
+            checkOut: document.getElementById('modalCheckOut').value,
+            roomType: document.getElementById('modalRoomType').value,
+            guests: document.getElementById('modalGuests').value,
+            status: document.getElementById('modalStatus').value,
+            specialRequests: document.getElementById('modalSpecialRequests').value
+        };
+        
+        let success = false;
+        let message = '';
+        
+        if (bookingId) {
+            // Update existing booking
+            success = updateBooking(bookingId, bookingData);
+            message = 'Booking updated successfully';
+        } else {
+            // Add new booking
+            const newBooking = addBooking(bookingData);
+            success = true;
+            message = `Booking created successfully! ID: ${newBooking.id}`;
+        }
+        
+        if (success) {
+            renderBookingsTable();
+            updateDashboardStats();
+            bookingModal.hide();
+            showAlert(message);
+        } else {
+            showAlert('Failed to save booking', 'error');
+        }
+    });
+    
+    // Export functionality
+    exportBtn?.addEventListener('click', exportToCSV);
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            bookingModal.hide();
+        }
+    });
 });
 
-exportBtn.addEventListener('click', exportToCSV);
-
-// Initialize date on page load
-updateDate();
+// Make functions available globally for HTML onclick events
+window.navigateToSection = navigateToSection;
