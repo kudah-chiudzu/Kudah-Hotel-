@@ -17,7 +17,7 @@ const overlay = document.getElementById('overlay');
 const navLinks = document.querySelectorAll('.nav-link');
 const bookingForm = document.getElementById('bookingForm');
 const bookingsTableBody = document.getElementById('bookingsTableBody');
-const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+const bookingModal = document.getElementById('bookingModal') ? new bootstrap.Modal(document.getElementById('bookingModal')) : null;
 const modalBookingForm = document.getElementById('modalBookingForm');
 const modalTitle = document.getElementById('modalTitle');
 const addBookingBtn = document.getElementById('addBookingBtn');
@@ -46,17 +46,34 @@ let bookingChart, roomChart;
 
 // Show alert function
 function showAlert(message, type = 'success') {
+    if (!alertToast) {
+        console.log('Alert:', message, type);
+        return;
+    }
+    
     const toast = new bootstrap.Toast(alertToast);
     const toastBody = alertToast.querySelector('.toast-body');
     
-    alertToast.className = `toast align-items-center text-white border-0 ${type === 'success' ? 'success' : type === 'error' ? 'error' : 'warning'}`;
-    toastBody.textContent = message;
+    // Remove existing classes
+    alertToast.className = 'toast align-items-center text-white border-0';
     
+    // Add appropriate class based on type
+    if (type === 'success') {
+        alertToast.classList.add('success');
+    } else if (type === 'error') {
+        alertToast.classList.add('error');
+    } else if (type === 'warning') {
+        alertToast.classList.add('warning');
+    }
+    
+    toastBody.textContent = message;
     toast.show();
 }
 
 // Update current date
 function updateDate() {
+    if (!currentDateElement) return;
+    
     const now = new Date();
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     currentDateElement.textContent = now.toLocaleDateString('en-US', options);
@@ -66,16 +83,20 @@ function updateDate() {
 function toggleSidebar() {
     sidebar.classList.toggle('show');
     overlay.classList.toggle('show');
+    document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
 }
 
 // Close sidebar
 function closeSidebarFunc() {
     sidebar.classList.remove('show');
     overlay.classList.remove('show');
+    document.body.style.overflow = '';
 }
 
 // Navigate to section
 function navigateToSection(sectionId) {
+    console.log('Navigating to:', sectionId);
+    
     // Hide all sections
     document.querySelectorAll('section').forEach(section => {
         section.style.display = 'none';
@@ -100,6 +121,11 @@ function navigateToSection(sectionId) {
         }
         
         closeSidebarFunc();
+        
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+        console.error('Section not found:', sectionId);
     }
 }
 
@@ -124,7 +150,8 @@ function addBooking(bookingData) {
     const newBooking = {
         id: generateBookingId(),
         ...bookingData,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        status: bookingData.status || 'pending'
     };
     bookings.push(newBooking);
     localStorage.setItem('kudahHotelBookings', JSON.stringify(bookings));
@@ -160,6 +187,8 @@ function getUserBookings(email) {
 
 // Render user bookings
 function renderUserBookings() {
+    if (!userBookingsContainer) return;
+    
     userBookingsContainer.innerHTML = '';
     
     const userEmail = document.getElementById('email') ? document.getElementById('email').value : '';
@@ -182,7 +211,7 @@ function renderUserBookings() {
             <div class="text-center py-5">
                 <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
                 <h4 class="text-muted">No Bookings Found</h4>
-                <p class="text-muted">You haven't made any bookings yet. <a href="#" data-page="book" class="text-gold">Book now</a> to get started!</p>
+                <p class="text-muted">You haven't made any bookings yet. <a href="#" onclick="navigateToSection('bookSection')" class="text-gold">Book now</a> to get started!</p>
             </div>
         `;
         return;
@@ -245,6 +274,8 @@ function renderUserBookings() {
 
 // Render bookings table
 function renderBookingsTable() {
+    if (!bookingsTableBody) return;
+    
     bookingsTableBody.innerHTML = '';
     
     if (bookings.length === 0) {
@@ -298,7 +329,7 @@ function renderBookingsTable() {
 // Open edit modal
 function openEditModal(id) {
     const booking = bookings.find(b => b.id === id);
-    if (booking) {
+    if (booking && bookingModal) {
         document.getElementById('bookingId').value = booking.id;
         document.getElementById('modalFirstName').value = booking.firstName;
         document.getElementById('modalLastName').value = booking.lastName;
@@ -331,6 +362,8 @@ function deleteBookingHandler(id) {
 
 // Update dashboard statistics
 function updateDashboardStats() {
+    if (!occupiedRoomsElement) return;
+    
     const today = new Date().toDateString();
     
     const occupiedRooms = bookings.filter(booking => 
@@ -357,11 +390,16 @@ function updateDashboardStats() {
 
 // Initialize charts
 function initializeCharts() {
-    // Booking Trends Chart
-    const bookingCtx = document.getElementById('bookingChart').getContext('2d');
-    const roomCtx = document.getElementById('roomChart').getContext('2d');
+    const bookingCtx = document.getElementById('bookingChart');
+    const roomCtx = document.getElementById('roomChart');
     
-    // Sample data for booking trends (last 7 days)
+    if (!bookingCtx || !roomCtx) return;
+    
+    // Destroy existing charts
+    if (bookingChart) bookingChart.destroy();
+    if (roomChart) roomChart.destroy();
+    
+    // Booking Trends Chart
     const last7Days = Array.from({length: 7}, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - i);
@@ -386,6 +424,7 @@ function initializeCharts() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     display: false
@@ -433,6 +472,7 @@ function initializeCharts() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'bottom'
@@ -481,14 +521,39 @@ function exportToCSV() {
     showAlert('Bookings exported successfully');
 }
 
+// Validate booking dates
+function validateBookingDates(checkIn, checkOut) {
+    if (!checkIn || !checkOut) {
+        return { valid: false, message: 'Please select both check-in and check-out dates' };
+    }
+    
+    const today = new Date().toISOString().split('T')[0];
+    if (checkIn < today) {
+        return { valid: false, message: 'Check-in date cannot be in the past' };
+    }
+    
+    if (checkIn >= checkOut) {
+        return { valid: false, message: 'Check-out date must be after check-in date' };
+    }
+    
+    return { valid: true };
+}
+
 // Initialize the application
 function init() {
+    console.log('Initializing Kudah Hotel App...');
+    
     // Set minimum dates for booking forms
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('checkIn')?.setAttribute('min', today);
-    document.getElementById('checkOut')?.setAttribute('min', today);
-    document.getElementById('modalCheckIn')?.setAttribute('min', today);
-    document.getElementById('modalCheckOut')?.setAttribute('min', today);
+    const checkInInput = document.getElementById('checkIn');
+    const checkOutInput = document.getElementById('checkOut');
+    const modalCheckIn = document.getElementById('modalCheckIn');
+    const modalCheckOut = document.getElementById('modalCheckOut');
+    
+    if (checkInInput) checkInInput.setAttribute('min', today);
+    if (checkOutInput) checkOutInput.setAttribute('min', today);
+    if (modalCheckIn) modalCheckIn.setAttribute('min', today);
+    if (modalCheckOut) modalCheckOut.setAttribute('min', today);
     
     // Update date
     updateDate();
@@ -497,80 +562,109 @@ function init() {
     renderBookingsTable();
     updateDashboardStats();
     initializeCharts();
+    
+    console.log('App initialized successfully');
 }
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded');
+    
     // Initialize app
     init();
     
     // User type selection
-    adminCard.addEventListener('click', function() {
-        splashScreen.classList.add('hidden');
-        setTimeout(() => {
-            splashScreen.style.display = 'none';
-            loginPage.classList.add('active');
-        }, 800);
-    });
+    if (adminCard) {
+        adminCard.addEventListener('click', function() {
+            console.log('Admin card clicked');
+            splashScreen.classList.add('hidden');
+            setTimeout(() => {
+                splashScreen.style.display = 'none';
+                loginPage.classList.add('active');
+            }, 800);
+        });
+    }
     
-    userCard.addEventListener('click', function() {
-        splashScreen.classList.add('hidden');
-        setTimeout(() => {
-            splashScreen.style.display = 'none';
-            userHome.style.display = 'block';
-        }, 800);
-    });
+    if (userCard) {
+        userCard.addEventListener('click', function() {
+            console.log('User card clicked');
+            splashScreen.classList.add('hidden');
+            setTimeout(() => {
+                splashScreen.style.display = 'none';
+                if (userHome) userHome.style.display = 'block';
+            }, 800);
+        });
+    }
     
     // Back to splash from login
-    backToSplash.addEventListener('click', function(e) {
-        e.preventDefault();
-        loginPage.classList.remove('active');
-        setTimeout(() => {
-            splashScreen.style.display = 'flex';
-            splashScreen.classList.remove('hidden');
-        }, 300);
-    });
+    if (backToSplash) {
+        backToSplash.addEventListener('click', function(e) {
+            e.preventDefault();
+            loginPage.classList.remove('active');
+            setTimeout(() => {
+                splashScreen.style.display = 'flex';
+                splashScreen.classList.remove('hidden');
+            }, 300);
+        });
+    }
     
     // Admin login
-    loginForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        
-        if (username === adminCredentials.username && password === adminCredentials.password) {
-            loginPage.classList.remove('active');
-            adminDashboard.style.display = 'block';
-            showAlert('Welcome to Admin Dashboard!');
-        } else {
-            showAlert('Invalid credentials. Please try again.', 'error');
-        }
-    });
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === adminCredentials.username && password === adminCredentials.password) {
+                loginPage.classList.remove('active');
+                if (adminDashboard) adminDashboard.style.display = 'block';
+                showAlert('Welcome to Admin Dashboard!');
+                // Reinitialize charts for admin dashboard
+                setTimeout(() => {
+                    initializeCharts();
+                    updateDashboardStats();
+                }, 100);
+            } else {
+                showAlert('Invalid credentials. Please try again.', 'error');
+            }
+        });
+    }
     
     // Logout functionality
-    logoutBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        if (adminDashboard.style.display === 'block') {
-            adminDashboard.style.display = 'none';
-        } else {
-            userHome.style.display = 'none';
-        }
-        
-        // Clear any form data
-        document.getElementById('bookingForm')?.reset();
-        document.getElementById('loginForm')?.reset();
-        
-        // Show splash screen
-        splashScreen.style.display = 'flex';
-        setTimeout(() => {
-            splashScreen.classList.remove('hidden');
-        }, 50);
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            if (adminDashboard && adminDashboard.style.display === 'block') {
+                adminDashboard.style.display = 'none';
+            } else if (userHome && userHome.style.display === 'block') {
+                userHome.style.display = 'none';
+            }
+            
+            // Clear any form data
+            if (document.getElementById('bookingForm')) document.getElementById('bookingForm').reset();
+            if (document.getElementById('loginForm')) document.getElementById('loginForm').reset();
+            
+            // Show splash screen
+            splashScreen.style.display = 'flex';
+            setTimeout(() => {
+                splashScreen.classList.remove('hidden');
+            }, 50);
+        });
+    }
     
     // Sidebar functionality
-    menuBtn.addEventListener('click', toggleSidebar);
-    closeSidebar.addEventListener('click', closeSidebarFunc);
-    overlay.addEventListener('click', closeSidebarFunc);
+    if (menuBtn) {
+        menuBtn.addEventListener('click', toggleSidebar);
+    }
+    
+    if (closeSidebar) {
+        closeSidebar.addEventListener('click', closeSidebarFunc);
+    }
+    
+    if (overlay) {
+        overlay.addEventListener('click', closeSidebarFunc);
+    }
     
     // Navigation links
     navLinks.forEach(link => {
@@ -582,94 +676,139 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // User booking form
-    bookingForm?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const bookingData = {
-            firstName: document.getElementById('firstName').value,
-            lastName: document.getElementById('lastName').value,
-            email: document.getElementById('email').value,
-            phone: document.getElementById('phone').value,
-            checkIn: document.getElementById('checkIn').value,
-            checkOut: document.getElementById('checkOut').value,
-            roomType: document.getElementById('roomType').value,
-            guests: document.getElementById('guests').value,
-            specialRequests: document.getElementById('specialRequests').value,
-            status: 'pending'
-        };
-        
-        const newBooking = addBooking(bookingData);
-        
-        // Reset form
-        this.reset();
-        
-        // Show success message
-        showAlert(`Booking created successfully! Your booking ID is ${newBooking.id}`);
-        
-        // Navigate to my bookings
-        setTimeout(() => {
-            navigateToSection('myBookingsSection');
-        }, 2000);
-    });
+    if (bookingForm) {
+        bookingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const bookingData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                checkIn: document.getElementById('checkIn').value,
+                checkOut: document.getElementById('checkOut').value,
+                roomType: document.getElementById('roomType').value,
+                guests: document.getElementById('guests').value,
+                specialRequests: document.getElementById('specialRequests').value,
+                status: 'pending'
+            };
+            
+            // Validate dates
+            const validation = validateBookingDates(bookingData.checkIn, bookingData.checkOut);
+            if (!validation.valid) {
+                showAlert(validation.message, 'error');
+                return;
+            }
+            
+            const newBooking = addBooking(bookingData);
+            
+            // Reset form
+            this.reset();
+            
+            // Show success message
+            showAlert(`Booking created successfully! Your booking ID is ${newBooking.id}`);
+            
+            // Navigate to my bookings
+            setTimeout(() => {
+                navigateToSection('myBookingsSection');
+            }, 2000);
+        });
+    }
     
     // Admin add booking button
-    addBookingBtn?.addEventListener('click', function() {
-        document.getElementById('bookingId').value = '';
-        modalBookingForm.reset();
-        modalTitle.textContent = 'Add New Booking';
-        bookingModal.show();
-    });
+    if (addBookingBtn) {
+        addBookingBtn.addEventListener('click', function() {
+            if (document.getElementById('bookingId')) {
+                document.getElementById('bookingId').value = '';
+            }
+            if (modalBookingForm) {
+                modalBookingForm.reset();
+            }
+            if (modalTitle) {
+                modalTitle.textContent = 'Add New Booking';
+            }
+            if (bookingModal) {
+                bookingModal.show();
+            }
+        });
+    }
     
     // Save booking in modal (for admin)
-    saveBookingBtn?.addEventListener('click', function() {
-        const bookingId = document.getElementById('bookingId').value;
-        const bookingData = {
-            firstName: document.getElementById('modalFirstName').value,
-            lastName: document.getElementById('modalLastName').value,
-            email: document.getElementById('modalEmail').value,
-            phone: document.getElementById('modalPhone').value,
-            checkIn: document.getElementById('modalCheckIn').value,
-            checkOut: document.getElementById('modalCheckOut').value,
-            roomType: document.getElementById('modalRoomType').value,
-            guests: document.getElementById('modalGuests').value,
-            status: document.getElementById('modalStatus').value,
-            specialRequests: document.getElementById('modalSpecialRequests').value
-        };
-        
-        let success = false;
-        let message = '';
-        
-        if (bookingId) {
-            // Update existing booking
-            success = updateBooking(bookingId, bookingData);
-            message = 'Booking updated successfully';
-        } else {
-            // Add new booking
-            const newBooking = addBooking(bookingData);
-            success = true;
-            message = `Booking created successfully! ID: ${newBooking.id}`;
-        }
-        
-        if (success) {
-            renderBookingsTable();
-            updateDashboardStats();
-            bookingModal.hide();
-            showAlert(message);
-        } else {
-            showAlert('Failed to save booking', 'error');
-        }
-    });
+    if (saveBookingBtn) {
+        saveBookingBtn.addEventListener('click', function() {
+            const bookingId = document.getElementById('bookingId') ? document.getElementById('bookingId').value : '';
+            const bookingData = {
+                firstName: document.getElementById('modalFirstName').value,
+                lastName: document.getElementById('modalLastName').value,
+                email: document.getElementById('modalEmail').value,
+                phone: document.getElementById('modalPhone').value,
+                checkIn: document.getElementById('modalCheckIn').value,
+                checkOut: document.getElementById('modalCheckOut').value,
+                roomType: document.getElementById('modalRoomType').value,
+                guests: document.getElementById('modalGuests').value,
+                status: document.getElementById('modalStatus').value,
+                specialRequests: document.getElementById('modalSpecialRequests').value
+            };
+            
+            // Validate dates for new bookings
+            if (!bookingId) {
+                const validation = validateBookingDates(bookingData.checkIn, bookingData.checkOut);
+                if (!validation.valid) {
+                    showAlert(validation.message, 'error');
+                    return;
+                }
+            }
+            
+            let success = false;
+            let message = '';
+            
+            if (bookingId) {
+                // Update existing booking
+                success = updateBooking(bookingId, bookingData);
+                message = 'Booking updated successfully';
+            } else {
+                // Add new booking
+                const newBooking = addBooking(bookingData);
+                success = true;
+                message = `Booking created successfully! ID: ${newBooking.id}`;
+            }
+            
+            if (success) {
+                renderBookingsTable();
+                updateDashboardStats();
+                initializeCharts();
+                if (bookingModal) bookingModal.hide();
+                showAlert(message);
+            } else {
+                showAlert('Failed to save booking', 'error');
+            }
+        });
+    }
     
     // Export functionality
-    exportBtn?.addEventListener('click', exportToCSV);
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportToCSV);
+    }
     
-    // Close modal on escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            bookingModal.hide();
+    // Handle window resize for charts
+    window.addEventListener('resize', function() {
+        if (adminDashboard.style.display === 'block') {
+            initializeCharts();
         }
     });
 });
 
 // Make functions available globally for HTML onclick events
 window.navigateToSection = navigateToSection;
+window.toggleSidebar = toggleSidebar;
+
+// Add keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Escape key to close sidebar and modals
+    if (e.key === 'Escape') {
+        closeSidebarFunc();
+        if (bookingModal) {
+            bookingModal.hide();
+        }
+    }
+});
