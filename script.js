@@ -30,6 +30,7 @@ const totalGuestsElement = document.getElementById('totalGuests');
 const checkinsTodayElement = document.getElementById('checkinsToday');
 const pendingRequestsElement = document.getElementById('pendingRequests');
 const userBookingsContainer = document.getElementById('userBookingsContainer');
+const heroBtn = document.querySelector('.hero-btn');
 
 // Default admin credentials
 const adminCredentials = {
@@ -553,6 +554,14 @@ navLinks.forEach(link => {
         navigateToSection(`${page}Section`);
     });
 });
+
+// Fix for hero button
+if (heroBtn) {
+    heroBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateToSection('bookSection');
+    });
+}
 
 bookingForm.addEventListener('submit', (e) => {
     e.preventDefault();
