@@ -296,8 +296,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
 .sidebar {
     position: fixed;
     top: 0;
-    left: 0; /* Ensure it shows on screen */
-    width: 320px;
+    left: -320px;
     height: 100%;
     background: var(--primary);
     z-index: 1040;
@@ -895,5 +894,6 @@ h1, h2, h3, h4, h5, h6, .brand-text {
         page-break-inside: avoid;
     }
 }
+
 
 
