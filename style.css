@@ -296,7 +296,7 @@ h1, h2, h3, h4, h5, h6, .brand-text {
 .sidebar {
     position: fixed;
     top: 0;
-    left: -320px;
+    /*left: -320px;*/
     width: 320px;
     height: 100%;
     background: var(--primary);
@@ -305,6 +305,11 @@ h1, h2, h3, h4, h5, h6, .brand-text {
     box-shadow: 5px 0 25px rgba(0, 0, 0, 0.15);
     overflow-y: auto;
 }
+
+.sidebar.active {
+    left: 0;
+}
+
 
 .sidebar.show {
     left: 0;
@@ -893,3 +898,4 @@ h1, h2, h3, h4, h5, h6, .brand-text {
         page-break-inside: avoid;
     }
 }
+
