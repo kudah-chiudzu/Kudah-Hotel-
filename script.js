@@ -666,8 +666,8 @@ document.addEventListener('DOMContentLoaded', function() {
         overlay.addEventListener('click', closeSidebarFunc);
     }
 
-    document.getElementById('sidebar').classList.add('active'); // Show sidebar
-document.getElementById('sidebar').classList.remove('active'); // Hide sidebar
+    //document.getElementById('sidebar').classList.add('active'); // Show sidebar
+//document.getElementById('sidebar').classList.remove('active'); // Hide sidebar
     
     // Navigation links
     navLinks.forEach(link => {
@@ -815,4 +815,5 @@ document.addEventListener('keydown', function(e) {
         }
     }
 });
+
 
