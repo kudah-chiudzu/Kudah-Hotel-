@@ -200,35 +200,41 @@
             </section>
 
             <!-- Rooms & Suites Section -->
-            <section class="section py-5" id="roomsSection" style="display: none;">
-                <div class="container">
-                    <h2 class="section-title text-center mb-5">Rooms & Suites</h2>
-                    <div class="row g-4">
-                        <!-- Standard Room -->
-                        <div class="col-lg-6">
-                            <div class="card room-card border-0 shadow-lg h-100">
-                                <div class="room-image">
-                                    <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" class="card-img-top" alt="Standard Room">
-                                    <div class="room-price">$150/night</div>
-                                </div>
-                                <div class="card-body">
-                                    <h4 class="card-title">Standard Room</h4>
-                                    <p class="card-text">Comfortable and elegant rooms perfect for solo travelers or couples. Features a king-sized bed, work desk, and modern amenities.</p>
-                                    <div class="room-features">
-                                        <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-user me-1"></i>2 Guests</span>
-                                        <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-ruler-combined me-1"></i>35 m²</span>
-                                        <span class="badge bg-light text-dark mb-2"><i class="fas fa-wifi me-1"></i>Free WiFi</span>
-                                    </div>
-                                </div>
-                            </div>
+<section class="section py-5" id="roomsSection" style="display: none;">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">Rooms & Suites</h2>
+        <div class="row g-4">
+
+            <!-- Standard Room -->
+            <div class="col-lg-6">
+                <div class="card room-card border-0 shadow-lg h-100">
+                    <div class="room-image">
+                        <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=2070&q=80" 
+                             class="card-img-top" 
+                             alt="Standard Room">
+                        <div class="room-price">$150/night</div>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="card-title">Standard Room</h4>
+                        <p class="card-text">Comfortable and elegant rooms perfect for solo travelers or couples. Features a king-sized bed, work desk, and modern amenities.</p>
+                        <div class="room-features">
+                            <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-user me-1"></i>2 Guests</span>
+                            <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-ruler-combined me-1"></i>35 m²</span>
+                            <span class="badge bg-light text-dark mb-2"><i class="fas fa-wifi me-1"></i>Free WiFi</span>
                         </div>
-                        <div class="col-lg-6">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deluxe Room (Fixed Image + Price) -->
+<div class="col-lg-6">
     <div class="card room-card border-0 shadow-lg h-100">
         <div class="room-image">
             <img 
-                src="https://images.unsplash.com/photo-1600585154356-62f342a2016c?w=2070&q=80&auto=format&fit=crop"
-                class="card-img-top"
-                alt="Deluxe Room">
+              src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=2070&q=80"
+              class="card-img-top" 
+              alt="Deluxe Room">
+            <div class="room-price">$230/night</div>
         </div>
         <div class="card-body">
             <h4 class="card-title">Deluxe Room</h4>
@@ -241,49 +247,92 @@
         </div>
     </div>
 </div>
+If you like, I can pick 5 alternative deluxe room images (all tested) so you can choose the one you like most. Do you want me to do that?
 
 
-                        <div class="col-lg-6">
+
+
+
+
+
+You said:
+give me a clickable link for that in the code
+
+
+ChatGPT said:
+Sure! You can wrap the image in an <a> tag so it’s clickable and opens a larger version of the image or a booking page. Here’s the updated Deluxe Room card with a clickable image link:
+
+html
+Copy code
+<!-- Deluxe Room (Clickable Image + Price) -->
+<div class="col-lg-6">
     <div class="card room-card border-0 shadow-lg h-100">
         <div class="room-image">
-            <img 
-                src="https://images.unsplash.com/photo-1554995207-c18c203602cb?w=2070&q=80&auto=format&fit=crop"
-                class="card-img-top"
-                alt="Luxury Suite">
+            <a href="https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=2070&q=80" target="_blank">
+                <img 
+                  src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=2070&q=80"
+                  class="card-img-top" 
+                  alt="Deluxe Room">
+            </a>
+            <div class="room-price">$230/night</div>
         </div>
         <div class="card-body">
-            <h4 class="card-title">Luxury Suite</h4>
-            <p class="card-text">Elegant suites with separate living areas, premium furnishings, and exclusive access to club lounge facilities.</p>
+            <h4 class="card-title">Deluxe Room</h4>
+            <p class="card-text">Spacious rooms with stunning views, premium bedding, and enhanced amenities for a luxurious stay experience.</p>
             <div class="room-features">
-                <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-user me-1"></i>4 Guests</span>
-                <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-ruler-combined me-1"></i>65 m²</span>
-                <span class="badge bg-light text-dark mb-2"><i class="fas fa-couch me-1"></i>Living Room</span>
+                <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-user me-1"></i>3 Guests</span>
+                <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-ruler-combined me-1"></i>45 m²</span>
+                <span class="badge bg-light text-dark mb-2"><i class="fas fa-tv me-1"></i>Smart TV</span>
             </div>
         </div>
     </div>
 </div>
-
-                        <!-- Executive Suite -->
-                        <div class="col-lg-6">
-                            <div class="card room-card border-0 shadow-lg h-100">
-                                <div class="room-image">
-                                    <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80" class="card-img-top" alt="Executive Suite">
-                                    <div class="room-price">$500/night</div>
-                                </div>
-                                <div class="card-body">
-                                    <h4 class="card-title">Executive Suite</h4>
-                                    <p class="card-text">The ultimate luxury experience with panoramic views, private balcony, butler service, and premium amenities.</p>
-                                    <div class="room-features">
-                                        <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-user me-1"></i>4 Guests</span>
-                                        <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-ruler-combined me-1"></i>85 m²</span>
-                                        <span class="badge bg-light text-dark mb-2"><i class="fas fa-concierge-bell me-1"></i>Butler Service</span>
-                                    </div>
-                                </div>
-                            </div>
+            <!-- Luxury Suite -->
+            <div class="col-lg-6">
+                <div class="card room-card border-0 shadow-lg h-100">
+                    <div class="room-image">
+                        <img 
+                          src="https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=2070&q=80"
+                          class="card-img-top" 
+                          alt="Luxury Suite">
+                        <div class="room-price">$350/night</div>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="card-title">Luxury Suite</h4>
+                        <p class="card-text">Elegant suites with separate living areas, premium furnishings, and exclusive access to club lounge facilities.</p>
+                        <div class="room-features">
+                            <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-user me-1"></i>4 Guests</span>
+                            <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-ruler-combined me-1"></i>65 m²</span>
+                            <span class="badge bg-light text-dark mb-2"><i class="fas fa-couch me-1"></i>Living Room</span>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
+
+            <!-- Executive Suite -->
+            <div class="col-lg-6">
+                <div class="card room-card border-0 shadow-lg h-100">
+                    <div class="room-image">
+                        <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=2070&q=80" 
+                             class="card-img-top" 
+                             alt="Executive Suite">
+                        <div class="room-price">$500/night</div>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="card-title">Executive Suite</h4>
+                        <p class="card-text">The ultimate luxury experience with panoramic views, private balcony, butler service, and premium amenities.</p>
+                        <div class="room-features">
+                            <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-user me-1"></i>4 Guests</span>
+                            <span class="badge bg-light text-dark me-2 mb-2"><i class="fas fa-ruler-combined me-1"></i>85 m²</span>
+                            <span class="badge bg-light text-dark mb-2"><i class="fas fa-concierge-bell me-1"></i>Butler Service</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
 
             <!-- Amenities Section -->
             <section class="section py-5" id="amenitiesSection" style="display: none;">
@@ -763,6 +812,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
